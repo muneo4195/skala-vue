@@ -10,25 +10,24 @@ permissions:
   id-token: write
 
 jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
-build-and-deploy:
-  runs-on: ubuntu-latest
-  steps:
-    - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
 
-    - uses: actions/setup-node@v4
-      with:
-        node-version: 20
+      - run: npm ci
 
-    - run: npm ci
+      - run: npm run build
+        env:
+          VITE_OPENWEATHER_KEY: ${{ secrets.VITE_OPENWEATHER_KEY }}
 
-    - run: npm run build
-      env:
-        VITE_OPENWEATHER_KEY: ${{ secrets.VITE_OPENWEATHER_KEY }}
-
-    - uses: actions/upload-pages-artifact@v3
-      with:
-        path: ./dist
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./dist
 
 deploy:
   needs: build-and-deploy
