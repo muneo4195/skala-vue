@@ -1,0 +1,89 @@
+import { ref, watch } from 'vue'
+import { defineStore } from 'pinia'
+import { useWeatherStore } from './weatherStore'
+import { useFavoriteStore } from './favoriteStore'
+
+const STORAGE_KEY = 'weather-journal-entries'
+
+function loadEntries() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    return raw ? JSON.parse(raw) : []
+  } catch {
+    return []
+  }
+}
+
+function snapshotWeather() {
+  const weatherStore = useWeatherStore()
+  const favoriteStore = useFavoriteStore()
+  const city = weatherStore.getCityById(favoriteStore.favoriteCityId)
+  return city ? { cityName: city.name, status: city.status, temp: city.temp } : null
+}
+
+function makeId() {
+  return `entry_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`
+}
+
+// 일기/할일 기록을 작성 시각 + 그 시점 대표 도시 날씨와 함께 localStorage에 저장
+export const useJournalStore = defineStore('journal', () => {
+  const entries = ref(loadEntries())
+
+  watch(
+    entries,
+    (value) => {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(value))
+    },
+    { deep: true },
+  )
+
+  function addDiaryEntry(title, content) {
+    const trimmedTitle = title.trim()
+    const trimmedContent = content.trim()
+    if (!trimmedTitle && !trimmedContent) return
+
+    entries.value.unshift({
+      id: makeId(),
+      type: 'diary',
+      title: trimmedTitle,
+      content: trimmedContent,
+      createdAt: Date.now(),
+      weather: snapshotWeather(),
+    })
+  }
+
+  // 여러 할일을 한 번에 추가. 나중에 또 호출하면 기존 목록 위에 이어서 추가됨
+  function addTodoEntries(texts) {
+    const weather = snapshotWeather()
+    const now = Date.now()
+    const newEntries = texts
+      .map((text) => text.trim())
+      .filter(Boolean)
+      .map((text, index) => ({
+        id: makeId(),
+        type: 'todo',
+        text,
+        createdAt: now + index,
+        weather,
+        done: false,
+      }))
+    entries.value.unshift(...newEntries)
+  }
+
+  function toggleTodo(id) {
+    const entry = entries.value.find((item) => item.id === id)
+    if (entry) entry.done = !entry.done
+  }
+
+  function removeEntry(id) {
+    entries.value = entries.value.filter((item) => item.id !== id)
+  }
+
+  // 일기(title/content) 또는 할일(text) 내용을 수정
+  function updateEntry(id, patch) {
+    const entry = entries.value.find((item) => item.id === id)
+    if (entry) Object.assign(entry, patch)
+  }
+
+  return { entries, addDiaryEntry, addTodoEntries, toggleTodo, removeEntry, updateEntry }
+})
