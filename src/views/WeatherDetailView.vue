@@ -25,14 +25,19 @@ const FULL_NAME_MAP = {
 }
 
 const cityDetail = ref(null)
+// cityDetail이 null인 게 "아직 로딩 중"인지 "진짜 없는 도시"인지 구분이 안 돼서,
+// loadCities()가 끝나기 전까지는 "찾을 수 없음" 대신 로딩 상태를 따로 보여줌
+const isLoadingDetail = ref(true)
 
 onMounted(async () => {
-  // 홈 화면을 거치지 않고 상세 URL로 바로 들어온 경우를 대비해 데이터 로드 보장
-  await weatherStore.loadCities()
-  const city = weatherStore.getCityById(route.params.cityId)
+  // 홈/전체보기를 거쳐 들어왔으면 이미 캐시돼 있어 API 호출 없이 바로 반환되고,
+  // 상세 URL로 바로 들어온 경우엔 이 도시 하나만 조회함(loadCities로 50개 전체를
+  // 기다리지 않아서 훨씬 빠름)
+  const city = await weatherStore.ensureCityLoaded(route.params.cityId)
   cityDetail.value = city
     ? { ...city, fullName: FULL_NAME_MAP[city.id] ?? city.name }
     : null
+  isLoadingDetail.value = false
   if (city) {
     weatherStore.fetchCityForecast(city.id)
   }
@@ -207,6 +212,12 @@ watch(backClickCount, () => {
       </div>
     </div>
 
+    <template v-else-if="isLoadingDetail">
+      <div class="loading-state">
+        <span class="loading-spinner" aria-hidden="true"></span>
+        <p class="no-result">날씨 정보를 불러오는 중입니다...</p>
+      </div>
+    </template>
     <template v-else>
       <p class="no-result">해당 도시({{ route.params.cityId }})의 상세 정보를 찾을 수 없습니다.</p>
       <button class="back-button" @click="goBack">닫기</button>
@@ -536,6 +547,29 @@ watch(backClickCount, () => {
 .no-result {
   color: #888;
   text-align: center;
+}
+
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 40px 0;
+}
+
+.loading-spinner {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 3px solid rgba(61, 132, 229, 0.2);
+  border-top-color: #3d84e5;
+  animation: loading-spin 0.8s linear infinite;
+}
+
+@keyframes loading-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .back-button {

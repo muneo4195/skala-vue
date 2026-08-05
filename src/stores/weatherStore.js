@@ -140,6 +140,27 @@ export const useWeatherStore = defineStore('weather', () => {
     return cities.value.find((city) => city.id === id) ?? null
   }
 
+  // 상세페이지 진입 시 loadCities()(전체 50개 조회)를 기다리지 않고, 필요한
+  // 도시 하나만 바로 조회하기 위한 함수. 이미 캐시돼 있으면(홈/전체보기를 거쳐
+  // 들어온 경우) API 호출 없이 즉시 반환됨
+  async function ensureCityLoaded(cityId) {
+    const cached = getCityById(cityId)
+    if (cached) return cached
+
+    const cityQuery = CITY_QUERIES.find((c) => c.id === cityId)
+    if (!cityQuery) return null
+
+    try {
+      const city = await fetchCityWeather(cityQuery)
+      if (!cities.value.some((c) => c.id === city.id)) {
+        cities.value.push(city)
+      }
+      return city
+    } catch {
+      return null
+    }
+  }
+
   // 도시별 5일치(3시간 간격, 최대 40개) 기온 추이. 상세페이지에서만 필요해서
   // loadCities와 별도로, 상세페이지 진입 시점에만 지연 로딩함. 과거 날씨는
   // OpenWeatherMap 무료 플랜에서 제공하지 않아 앞으로의 예보만 보여줌
@@ -194,6 +215,7 @@ export const useWeatherStore = defineStore('weather', () => {
     errorMessage,
     loadCities,
     getCityById,
+    ensureCityLoaded,
     forecastByCity,
     fetchCityForecast,
   }
