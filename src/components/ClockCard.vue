@@ -63,16 +63,17 @@ const dateText = computed(() => {
 
 .clock-card__time {
   margin: 0;
-  padding: 5px 0;
-  font-size: clamp(2rem, 6vw, 3.4rem);
+  padding: 10px 0;
+  font-size: clamp(2rem, 8vw, 3.4rem);
   letter-spacing: 0.05em;
   font-variant-numeric: tabular-nums;
 }
 
 .clock-card__date {
   margin: 0;
-  font-size: clamp(0.85rem, 2vw, 1.15rem);
-  letter-spacing: 0.1em;
+  font-size: clamp(1rem, 3vw, 2rem);
+  letter-spacing: 0.05em;
   opacity: 0.85;
+  font-variant-numeric: tabular-nums;
 }
 </style>

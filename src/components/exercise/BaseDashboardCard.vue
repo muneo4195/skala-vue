@@ -9,7 +9,11 @@ defineProps({
 
 <template>
   <section class="dashboard-card">
-    <h2 v-if="title" class="dashboard-card__title" v-html="title"></h2>
+    <!-- title-extra: 제목 반대편(오른쪽)에 붙일 내용(예: 시계) -->
+    <div v-if="title" class="dashboard-card__header">
+      <h2 class="dashboard-card__title" v-html="title"></h2>
+      <slot name="title-extra" />
+    </div>
     <div class="dashboard-card__body">
       <slot />
     </div>
@@ -30,14 +34,22 @@ defineProps({
   box-shadow: 0 10px 30px rgba(20, 20, 30, 0.06);
 }
 
+.dashboard-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 0 12px;
+}
+
 .dashboard-card__title {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-family: var(--font-heading);
+  font-family: var(--font-display);
   font-size: 1.1rem;
   font-weight: 600;
-  margin: 0 0 12px;
+  margin: 0;
   color: #444;
 }
 

@@ -37,7 +37,7 @@ export const useJournalStore = defineStore('journal', () => {
     { deep: true },
   )
 
-  function addDiaryEntry(title, content) {
+  function addDiaryEntry(title, content, rating = 0) {
     const trimmedTitle = title.trim()
     const trimmedContent = content.trim()
     if (!trimmedTitle && !trimmedContent) return
@@ -47,6 +47,7 @@ export const useJournalStore = defineStore('journal', () => {
       type: 'diary',
       title: trimmedTitle,
       content: trimmedContent,
+      rating,
       createdAt: Date.now(),
       weather: snapshotWeather(),
     })
@@ -79,11 +80,17 @@ export const useJournalStore = defineStore('journal', () => {
     entries.value = entries.value.filter((item) => item.id !== id)
   }
 
+  // 할일 한 묶음(같은 날짜)을 한 번에 전부 지울 때 사용
+  function removeEntries(ids) {
+    const idSet = new Set(ids)
+    entries.value = entries.value.filter((item) => !idSet.has(item.id))
+  }
+
   // 일기(title/content) 또는 할일(text) 내용을 수정
   function updateEntry(id, patch) {
     const entry = entries.value.find((item) => item.id === id)
     if (entry) Object.assign(entry, patch)
   }
 
-  return { entries, addDiaryEntry, addTodoEntries, toggleTodo, removeEntry, updateEntry }
+  return { entries, addDiaryEntry, addTodoEntries, toggleTodo, removeEntry, removeEntries, updateEntry }
 })

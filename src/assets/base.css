@@ -35,10 +35,10 @@
 
   --section-gap: 160px;
 
-  /* 온도처럼 크게 강조하는 숫자에 쓰는 서체 */
-  --font-display: 'Gaegu', Inter, -apple-system, BlinkMacSystemFont, sans-serif;
-  /* "현재 날씨", "지역별 날씨 현황", "내 기록" 같은 제목에 쓰는 서체 */
-  --font-heading: 'Jua', 'Gaegu', sans-serif;
+  /* 본문/숫자 등 제목을 제외한 나머지 글자에 쓰는 서체 */
+  --font-display: 'Do Hyeon', Inter, -apple-system, BlinkMacSystemFont, sans-serif;
+  /* "현재 날씨", "지역별 날씨 현황", "내 기록" 같은 제목에만 쓰는 서체 */
+  --font-heading: 'Black Han Sans', sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {

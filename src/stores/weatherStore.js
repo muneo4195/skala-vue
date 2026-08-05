@@ -55,6 +55,8 @@ const CITY_QUERIES = [
 
 export const REGION_ORDER = ['수도권', '강원권', '충청권', '경상권', '전라권', '제주권']
 
+const WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토']
+
 // OpenWeatherMap의 어색한 한글 자동번역 대신, 날씨 코드(id) 기준으로 직접 쉬운 라벨을 붙임
 // https://openweathermap.org/weather-conditions
 function getWeatherLabel(weatherId) {
@@ -95,6 +97,7 @@ export const useWeatherStore = defineStore('weather', () => {
       status: getWeatherLabel(data.weather[0].id),
       humidity: data.main.humidity,
       windSpeed: data.wind.speed,
+      windDeg: data.wind.deg,
     }
   }
 
@@ -126,5 +129,61 @@ export const useWeatherStore = defineStore('weather', () => {
     return cities.value.find((city) => city.id === id) ?? null
   }
 
-  return { cities, isLoading, errorMessage, loadCities, getCityById }
+  // 도시별 5일치(3시간 간격, 최대 40개) 기온 추이. 상세페이지에서만 필요해서
+  // loadCities와 별도로, 상세페이지 진입 시점에만 지연 로딩함. 과거 날씨는
+  // OpenWeatherMap 무료 플랜에서 제공하지 않아 앞으로의 예보만 보여줌
+  const forecastByCity = ref({})
+
+  async function fetchCityForecast(cityId) {
+    // 이미 불러온 도시는 재요청하지 않음(홈↔상세 왕복 시 캐시 재사용)
+    if (forecastByCity.value[cityId]?.points?.length) return
+
+    const city = CITY_QUERIES.find((c) => c.id === cityId)
+    if (!city) return
+
+    forecastByCity.value[cityId] = { loading: true, error: '', points: [] }
+    try {
+      const { data } = await axios.get('https://api.openweathermap.org/data/2.5/forecast', {
+        params: {
+          q: city.query,
+          appid: API_KEY,
+          units: 'metric',
+          lang: 'kr',
+        },
+      })
+      const points = data.list.map((entry) => {
+        // dt_txt는 "YYYY-MM-DD HH:mm:ss" 형태의 UTC 시각 문자열이라, 그대로 잘라 쓰면
+        // 한국 시간(UTC+9)과 9시간이나 어긋남. entry.dt(UTC 유닉스 초)로 Date를 만들면
+        // getHours()/getDate() 등이 브라우저 로컬 시간대 기준으로 알아서 변환해줌
+        const dt = new Date(entry.dt * 1000)
+        const pad = (n) => String(n).padStart(2, '0')
+        return {
+          date: `${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}`,
+          weekday: WEEKDAY_LABELS[dt.getDay()],
+          time: `${pad(dt.getHours())}:${pad(dt.getMinutes())}`,
+          temp: Math.round(entry.main.temp),
+          status: getWeatherLabel(entry.weather[0].id),
+          // 강수확률(0~1)을 그대로 저장, 표시할 때 %로 변환
+          pop: entry.pop ?? 0,
+        }
+      })
+      forecastByCity.value[cityId] = { loading: false, error: '', points }
+    } catch {
+      forecastByCity.value[cityId] = {
+        loading: false,
+        error: '예보 정보를 불러오지 못했습니다.',
+        points: [],
+      }
+    }
+  }
+
+  return {
+    cities,
+    isLoading,
+    errorMessage,
+    loadCities,
+    getCityById,
+    forecastByCity,
+    fetchCityForecast,
+  }
 })

@@ -1,29 +1,44 @@
 <script setup>
-import { ref } from 'vue'
+import { ElRate } from 'element-plus'
 
-const emit = defineEmits(['save', 'cancel'])
+// 부모(WeatherHomeView)가 들고 있는 draft 객체를 v-model로 물려받아 직접
+// 수정함. 팝업을 X로 닫아도 이 컴포넌트만 사라질 뿐 draft는 부모에 남아있으므로,
+// 다시 열면 쓰던 내용이 그대로 보임
+const draft = defineModel('draft', { type: Object, required: true })
 
-const title = ref('')
-const content = ref('')
+const emit = defineEmits(['save'])
 
+// 제목은 필수, 내용은 없어도 저장 가능
 const save = () => {
-  if (!title.value.trim() && !content.value.trim()) return
-  emit('save', { title: title.value, content: content.value })
+  if (!draft.value.title.trim()) return
+  emit('save', { title: draft.value.title, content: draft.value.content, rating: draft.value.rating })
+}
+
+// "취소"는 팝업을 닫는 게 아니라 쓰던 내용만 전부 지우는 초기화 버튼(팝업을
+// 닫는 건 이제 +버튼이 바뀐 X뿐)
+const resetDraft = () => {
+  draft.value.title = ''
+  draft.value.content = ''
+  draft.value.rating = 0
 }
 </script>
 
 <template>
   <div class="inline-form">
     <p class="inline-form__label">[일기]</p>
-    <input v-model="title" class="inline-form__title" placeholder="제목" />
+    <input v-model="draft.title" class="inline-form__title" placeholder="제목 (필수)" required />
     <textarea
-      v-model="content"
+      v-model="draft.content"
       class="inline-form__content"
       placeholder="오늘 하루는 어땠나요?"
       rows="4"
     ></textarea>
+    <div class="inline-form__rating">
+      <span class="inline-form__rating-label">오늘 하루는?</span>
+      <el-rate v-model="draft.rating" allow-half />
+    </div>
     <div class="inline-form__actions">
-      <button type="button" class="inline-form__cancel" @click="emit('cancel')">취소</button>
+      <button type="button" class="inline-form__cancel" @click="resetDraft">초기화</button>
       <button type="button" class="inline-form__save" @click="save">저장</button>
     </div>
   </div>
@@ -33,28 +48,14 @@ const save = () => {
 .inline-form {
   position: relative;
   width: 100%;
-  margin: 0 0 20px;
+  max-width: 720px;
   box-sizing: border-box;
-  background: rgba(255, 255, 255, 0.85);
+  background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   border-radius: 16px;
-  padding: 16px;
-  box-shadow: 0 10px 30px rgba(20, 20, 30, 0.06);
-}
-
-/* 우측 하단 + 버튼을 가리키는 말풍선 꼬리 */
-.inline-form::after {
-  content: '';
-  position: absolute;
-  right: 26px;
-  bottom: -14px;
-  width: 0;
-  height: 0;
-  border-left: 14px solid transparent;
-  border-right: 14px solid transparent;
-  border-top: 16px solid rgba(255, 255, 255, 0.85);
-  filter: drop-shadow(0 4px 3px rgba(20, 20, 30, 0.05));
+  padding: 24px;
+  box-shadow: 0 20px 50px rgba(20, 20, 30, 0.25);
 }
 
 .inline-form__label {
@@ -90,6 +91,18 @@ const save = () => {
   font-family: inherit;
   font-size: 0.9rem;
   resize: none;
+}
+
+.inline-form__rating {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.inline-form__rating-label {
+  font-size: 0.85rem;
+  color: #666;
 }
 
 .inline-form__actions {

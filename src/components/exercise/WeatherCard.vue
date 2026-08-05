@@ -65,83 +65,94 @@ const tempDelta = computed(() => {
   return Math.round(displayDelta * 10) / 10
 })
 
+// 별도 "상세보기" 버튼 없이, 카드를 선택하는 것 자체가 곧 상세보기로 이동함
 const onSelect = () => {
   emit('select-card', props.city)
-}
-
-const onDetail = () => {
   emit('click-detail', props.city)
 }
 </script>
 
 <template>
-  <div
-    class="weather-card"
-    :class="{ selected: isSelected }"
-    :style="{ '--card-bg': theme.soft }"
-    @click="onSelect"
-    @mouseenter="isHovered = true"
-    @mouseleave="isHovered = false"
-  >
-    <div class="weather-card__flip" :class="{ flipped: isFlipped }">
-      <div class="weather-card__face weather-card__face--front" :style="{ background: theme.soft }">
-        <div v-if="showFx" class="weather-card__fx" aria-hidden="true">
-          <WeatherFxLayer :effect="theme.effect" :snow-count="10" />
-        </div>
-        <div class="weather-card__top">
-          <button
-            type="button"
-            class="favorite-toggle"
-            :aria-label="isFavorite ? '대표 도시로 설정됨' : '대표 도시로 설정'"
-            @click.stop="toggleFavorite"
-          >
-            <Transition name="star-pop" mode="out-in">
-              <span :key="isFavorite" v-html="isFavorite ? ICONS.starFill : ICONS.starOutline"></span>
-            </Transition>
-          </button>
-          <h3 class="weather-card__name">{{ city.name }}</h3>
-          <span v-if="city.temp >= 25" class="tag hot">더움</span>
-          <span v-else class="tag cool">선선함</span>
-        </div>
-
-        <div class="weather-card__icon" v-html="theme.icon"></div>
-        <p class="weather-card__temp">{{ displayTemp }}{{ configStore.unitSymbol }}</p>
-        <p
-          v-if="tempDelta !== null"
-          class="weather-card__delta"
-          :class="tempDelta > 0 ? 'up' : tempDelta < 0 ? 'down' : 'neutral'"
+  <!-- 카드 자체가 상세보기로 가는 클릭 영역이라, 호버 시 el-tooltip으로
+       무슨 동작인지 안내함 -->
+  <el-tooltip :content="`${city.name} 상세 날씨 보러 가기`" placement="top">
+    <div
+      class="weather-card"
+      :class="{ selected: isSelected }"
+      :style="{ '--card-bg': theme.soft }"
+      @click="onSelect"
+      @mouseenter="isHovered = true"
+      @mouseleave="isHovered = false"
+    >
+      <div class="weather-card__flip" :class="{ flipped: isFlipped }">
+        <div
+          class="weather-card__face weather-card__face--front"
+          :style="{ background: theme.soft }"
         >
-          {{ tempDelta > 0 ? '▲' : tempDelta < 0 ? '▼' : '' }} 평균보다
-          {{ tempDelta === 0 ? '동일' : `${Math.abs(tempDelta)}${configStore.unitSymbol}` }}
-        </p>
-        <p class="weather-card__status">{{ city.status }}</p>
-
-        <button class="weather-card__button" @click.stop="onDetail">상세보기</button>
-      </div>
-
-      <div class="weather-card__face weather-card__face--back" :style="{ background: theme.soft }">
-        <h3 class="weather-card__name">{{ city.name }}</h3>
-        <p class="weather-card__back-mood">
-          {{ moodLine }}
-          <span v-if="moodIcon" class="weather-card__back-mood-icon" v-html="moodIcon"></span>
-        </p>
-        <div class="weather-card__back-stats">
-          <div class="back-stat">
-            <span class="back-stat__label">체감</span>
-            <span class="back-stat__value">{{ displayFeelsLike }}{{ configStore.unitSymbol }}</span>
+          <div v-if="showFx" class="weather-card__fx" aria-hidden="true">
+            <WeatherFxLayer :effect="theme.effect" :snow-count="10" />
           </div>
-          <div class="back-stat">
-            <span class="back-stat__label">바람</span>
-            <span class="back-stat__value">{{ city.windSpeed }}m/s</span>
+          <div class="weather-card__top">
+            <button
+              type="button"
+              class="favorite-toggle"
+              :aria-label="isFavorite ? '대표 도시로 설정됨' : '대표 도시로 설정'"
+              @click.stop="toggleFavorite"
+            >
+              <Transition name="star-pop" mode="out-in">
+                <span
+                  :key="isFavorite"
+                  v-html="isFavorite ? ICONS.starFill : ICONS.starOutline"
+                ></span>
+              </Transition>
+            </button>
+            <h3 class="weather-card__name">{{ city.name }}</h3>
+            <span v-if="city.temp >= 25" class="tag hot">더움</span>
+            <span v-else class="tag cool">선선함</span>
           </div>
-          <div class="back-stat">
-            <span class="back-stat__label">습도</span>
-            <span class="back-stat__value">{{ city.humidity }}%</span>
+
+          <div class="weather-card__icon" v-html="theme.icon"></div>
+          <p class="weather-card__temp">{{ displayTemp }}{{ configStore.unitSymbol }}</p>
+          <p
+            v-if="tempDelta !== null"
+            class="weather-card__delta"
+            :class="tempDelta > 0 ? 'up' : tempDelta < 0 ? 'down' : 'neutral'"
+          >
+            {{ tempDelta > 0 ? '▲' : tempDelta < 0 ? '▼' : '' }} 평균보다
+            {{ tempDelta === 0 ? '동일' : `${Math.abs(tempDelta)}${configStore.unitSymbol}` }}
+          </p>
+          <p class="weather-card__status">{{ city.status }}</p>
+        </div>
+
+        <div
+          class="weather-card__face weather-card__face--back"
+          :style="{ background: theme.soft }"
+        >
+          <h3 class="weather-card__name">{{ city.name }}</h3>
+          <p class="weather-card__back-mood">
+            {{ moodLine }}
+            <span v-if="moodIcon" class="weather-card__back-mood-icon" v-html="moodIcon"></span>
+          </p>
+          <div class="weather-card__back-stats">
+            <div class="back-stat">
+              <span class="back-stat__label">체감</span>
+              <span class="back-stat__value"
+                >{{ displayFeelsLike }}{{ configStore.unitSymbol }}</span
+              >
+            </div>
+            <div class="back-stat">
+              <span class="back-stat__label">바람</span>
+              <span class="back-stat__value">{{ city.windSpeed }}m/s</span>
+            </div>
+            <div class="back-stat">
+              <span class="back-stat__label">습도</span>
+              <span class="back-stat__value">{{ city.humidity }}%</span>
+            </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
+  </el-tooltip>
 </template>
 
 <style scoped>
@@ -166,7 +177,7 @@ const onDetail = () => {
   transform: scale(1.03);
 }
 
-/* 선택된 카드만 포스트잇처럼 접힌 모서리를 보여주고, 살짝 들썩이며 종이 느낌을 강화 */
+/* 선택된 카드만 포스트잇처럼 접힌 모서리를 보여주고 살짝 들썩이며 종이 느낌을 강화 */
 .weather-card.selected {
   position: relative;
   overflow: hidden;
@@ -176,8 +187,8 @@ const onDetail = () => {
 }
 
 /* 우측 하단을 포스트잇 밑부분처럼 접은 효과: 45도 회전된 정사각형 가상 요소를
-   모서리에 걸쳐 놓고, 카드의 overflow: hidden으로 절반을 잘라내 삼각형처럼 보이게 함.
-   색상은 카드 배경색(theme.soft)과 동일하게 맞추고, box-shadow로 입체감을 줌 */
+   모서리에 걸쳐 놓고 카드의 overflow: hidden으로 절반을 잘라내 삼각형처럼 보이게 함.
+   색상은 카드 배경색(theme.soft)과 동일하게 맞추고 box-shadow로 입체감을 줌 */
 .weather-card.selected::after {
   content: '';
   position: absolute;
@@ -194,7 +205,7 @@ const onDetail = () => {
 
 .weather-card__flip {
   position: relative;
-  min-height: 300px;
+  min-height: 260px;
   transition:
     transform 0.6s,
     clip-path 0.35s cubic-bezier(0.22, 1, 0.36, 1);
@@ -212,8 +223,8 @@ const onDetail = () => {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 6px;
-  padding: 16px 12px;
+  gap: 5px;
+  padding: 14px 12px;
   border-radius: 16px;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
@@ -292,9 +303,9 @@ const onDetail = () => {
 }
 
 .weather-card__icon {
-  font-size: 4.2rem;
+  font-size: 3.6rem;
   line-height: 1;
-  margin: 8px 0 4px;
+  margin: 6px 0 2px;
 }
 
 /* theme.icon은 v-html로 주입되므로, scoped 셀렉터가 안 먹혀서 :deep() 사용 */
@@ -324,8 +335,8 @@ const onDetail = () => {
 
 .weather-card__delta {
   margin: 0;
-  font-size: 0.82rem;
-  font-weight: 600;
+  font-size: 0.95rem;
+  font-weight: 700;
 }
 
 .weather-card__delta.up {
@@ -345,25 +356,6 @@ const onDetail = () => {
   color: #444;
   font-size: 0.95rem;
   font-weight: 700;
-}
-
-.weather-card__button {
-  width: 100%;
-  margin-top: auto;
-  padding: 6px 12px;
-  min-height: 32px;
-  border: none;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.6);
-  color: #444;
-  font-size: 0.95rem;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background 0.15s ease;
-}
-
-.weather-card__button:hover {
-  background: rgba(255, 255, 255, 0.9);
 }
 
 .weather-card__back-mood {

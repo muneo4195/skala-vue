@@ -39,32 +39,38 @@ const displayTemp = computed(() => {
 </script>
 
 <template>
-  <section
+  <el-tooltip
     v-if="heroCity"
-    class="hero"
-    role="button"
-    tabindex="0"
-    :style="{ borderBottomColor: theme.accent }"
-    @click="onClick"
-    @keydown.enter="onClick"
+    content="클릭하면 상세 날씨 정보를 볼 수 있어요"
+    placement="top"
+    :show-arrow="true"
   >
-    <WeatherFxLayer :effect="theme.effect" :snow-count="16" />
+    <section
+      class="hero"
+      role="button"
+      tabindex="0"
+      :style="{ borderBottomColor: theme.accent }"
+      @click="onClick"
+      @keydown.enter="onClick"
+    >
+      <WeatherFxLayer :effect="theme.effect" :snow-count="16" />
 
-    <div class="hero__panel">
-      <p class="hero__place"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-star-fill" viewBox="0 0 16 16">
-        <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/>
-      </svg> 즐겨찾기 - {{ heroCity.name }}</p>
-      <div class="hero__main">
-        <span class="hero__icon" v-html="theme.icon"></span>
-        <span class="hero__temp">{{ displayTemp }}{{ configStore.unitSymbol }}</span>
+      <div class="hero__panel">
+        <p class="hero__place"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-star-fill" viewBox="0 0 16 16">
+          <path d="M3.612 15.443c-.386.198-.824-.149-.746-.592l.83-4.73L.173 6.765c-.329-.314-.158-.888.283-.95l4.898-.696L7.538.792c.197-.39.73-.39.927 0l2.184 4.327 4.898.696c.441.062.612.636.282.95l-3.522 3.356.83 4.73c.078.443-.36.79-.746.592L8 13.187l-4.389 2.256z"/>
+        </svg> 즐겨찾기 - {{ heroCity.name }}</p>
+        <div class="hero__main">
+          <span class="hero__icon" v-html="theme.icon"></span>
+          <span class="hero__temp">{{ displayTemp }}{{ configStore.unitSymbol }}</span>
+        </div>
+        <p class="hero__mood">
+          {{ heroCity.status }} / {{ moodLine }}
+          <span v-if="moodIcon" class="hero__mood-icon" v-html="moodIcon"></span>
+        </p>
+        <p class="hero__time"><span v-html="ICONS.clock"></span> {{ formattedTime }} 기준</p>
       </div>
-      <p class="hero__mood">
-        {{ heroCity.status }} / {{ moodLine }}
-        <span v-if="moodIcon" class="hero__mood-icon" v-html="moodIcon"></span>
-      </p>
-      <p class="hero__time"><span v-html="ICONS.clock"></span> {{ formattedTime }} 기준</p>
-    </div>
-  </section>
+    </section>
+  </el-tooltip>
   <section v-else class="hero hero--loading">날씨 정보를 불러오는 중입니다...</section>
 </template>
 
@@ -82,7 +88,23 @@ const displayTemp = computed(() => {
   /* 배경과 거의 구분이 안 되니, 여기 카드가 있다는 것만 살짝 알려주는 밑줄.
      색상은 즐겨찾기 도시 날씨 테마에 맞춰 :style로 바뀜 */
   border-bottom: 3px solid;
-  transition: border-color 0.6s ease;
+  box-shadow: 0 6px 18px rgba(20, 20, 30, 0.05);
+  transform-origin: center;
+  transition:
+    border-color 0.6s ease,
+    transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.4s ease;
+}
+
+/* 전체보기 카드(WeatherCard)와 같은 방식으로 호버/클릭 시 들뜨는 느낌을 줘서
+   즐겨찾기 카드도 똑같이 역동적으로 반응하게 함 */
+.hero:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(20, 20, 30, 0.1);
+}
+
+.hero:active {
+  transform: scale(1.03);
 }
 
 .hero--loading {
