@@ -1,6 +1,6 @@
 # skala-vue
 
-Vue 3 + OpenWeatherMap API 기반 실습용 가상 날씨 대시보드
+Vue 3 + OpenWeatherMap API 기반 실습용 가상 날씨 대시보드 진행
 
 ## 실행 방법
 
