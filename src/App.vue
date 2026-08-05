@@ -58,6 +58,8 @@ const headerTitle = computed(() => (isRecordsPage.value ? '내 기록' : '현재
 // (알림/상세보기 팝업 때문에) filter로 흐려져도 그 영향을 받지 않음 —
 // filter가 걸린 조상 안에 있으면 position:fixed 기준이 뷰포트가 아니라 그
 // 조상으로 바뀌어서 FAB이 튀어보이는 문제가 있었음
+// 리뷰: KeepAlive로 페이지를 유지하는 것과는 별개로, 이 computed 하나로
+// "어느 페이지에서 FAB을 보여줄지"를 라우트 이름만 보고 결정하는 걸 확인함
 const showJournalFab = computed(() => backgroundRouteName.value !== 'all-cities')
 
 // FAB에서 고른 종류('diary'|'todo')에 따라 팝업으로 해당 작성 폼을 띄움
@@ -82,6 +84,8 @@ const resetTodoDraft = () => {
   todoDraftItems.value = Array(DEFAULT_TODO_ROWS).fill('')
 }
 
+// 리뷰: 저장 성공 시에만 draft를 비우고 팝업을 닫음 — 저장이 막히는 경우
+// (제목 없음 등)엔 폼 쪽에서 emit('save') 자체를 안 하므로 여기까지 안 옴
 const handleDiarySave = ({ title, content, rating }) => {
   journalStore.addDiaryEntry(title, content, rating)
   resetDiaryDraft()

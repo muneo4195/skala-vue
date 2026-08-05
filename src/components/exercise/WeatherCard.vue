@@ -107,8 +107,8 @@ const onSelect = () => {
               </Transition>
             </button>
             <h3 class="weather-card__name">{{ city.name }}</h3>
-            <span v-if="city.temp >= 25" class="tag hot">더움</span>
-            <span v-else class="tag cool">선선함</span>
+            <span v-if="city.temp >= 25" class="tag hot" aria-label="더움">&#128293;</span>
+            <span v-else class="tag cool" aria-label="선선함">&#127811;</span>
           </div>
 
           <div class="weather-card__icon" v-html="theme.icon"></div>

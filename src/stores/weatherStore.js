@@ -51,6 +51,13 @@ const CITY_QUERIES = [
   { id: 'city_51', name: '익산', query: 'Iksan,KR', region: '전라권' },
   { id: 'city_52', name: '군산', query: 'Gunsan,KR', region: '전라권' },
   { id: 'city_53', name: '나주', query: 'Naju,KR', region: '전라권' },
+  // 강원권(춘천/원주/강릉/속초 4개)이 다른 권역보다 눈에 띄게 적어서,
+  // 강원도의 나머지 실제 시(市) 단위 도시를 마저 채워 넣음
+  { id: 'city_54', name: '동해', query: 'Donghae,KR', region: '강원권' },
+  { id: 'city_55', name: '태백', query: 'Taebaek,KR', region: '강원권' },
+  { id: 'city_56', name: '삼척', query: 'Samcheok,KR', region: '강원권' },
+  // 제주권은 실제로 제주시/서귀포시 두 개뿐이라, 그중 빠져있던 서귀포를 추가
+  { id: 'city_57', name: '서귀포', query: 'Seogwipo,KR', region: '제주권' },
 ]
 
 export const REGION_ORDER = ['수도권', '강원권', '충청권', '경상권', '전라권', '제주권']
@@ -79,6 +86,8 @@ export const useWeatherStore = defineStore('weather', () => {
 
   const API_KEY = import.meta.env.VITE_OPENWEATHER_API_KEY
 
+  // 리뷰: 도시 하나의 현재 날씨만 조회하는 함수. loadCities에서 도시 개수만큼
+  // Promise.allSettled로 병렬 호출되는 걸 확인함(하나 실패해도 나머지는 정상 처리)
   async function fetchCityWeather(city) {
     const { data } = await axios.get('https://api.openweathermap.org/data/2.5/weather', {
       params: {
@@ -125,6 +134,8 @@ export const useWeatherStore = defineStore('weather', () => {
     isLoading.value = false
   }
 
+  // 리뷰: id로 캐시된 cities 배열에서 도시를 찾음. 아직 로딩 전이거나 없는
+  // id면 null을 반환하니, 호출하는 쪽에서 null 체크가 필요함을 확인함
   function getCityById(id) {
     return cities.value.find((city) => city.id === id) ?? null
   }

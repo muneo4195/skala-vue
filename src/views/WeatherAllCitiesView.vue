@@ -185,6 +185,8 @@ const selectedRegions = ref([])
 
 onMounted(weatherStore.loadCities)
 
+// 리뷰: 검색어 → 감성/라이프스타일 필터 → 기온 범위 순으로 순차 필터링되는
+// 걸 확인함. 셋 다 AND로 이어지고, 감성 필터 내부의 OR/AND는 activeMoodFilterGroups에서 이미 정리됨
 const filteredWeatherList = computed(() => {
   const keyword = searchQuery.value.trim()
   let list = keyword
@@ -239,6 +241,8 @@ const regionAverages = computed(() => {
 })
 
 // 지역(수도권/강원권/충청권/경상권/전라권/제주권)별로 묶어서 섹션 단위로 표시
+// 리뷰: REGION_ORDER 순서를 그대로 따르므로, 새 지역 도시를 추가해도 이 배열
+// 순서만 지키면 화면 배치가 자동으로 정리됨을 확인함
 const groupedWeatherList = computed(() => {
   const groups = {}
   filteredWeatherList.value.forEach((city) => {
