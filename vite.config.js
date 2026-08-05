@@ -10,7 +10,7 @@ export default defineConfig({
     vue(),
     vueDevTools(),
   ],
-  base: 'skala-vue',
+  base: '/skala-vue/',
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
